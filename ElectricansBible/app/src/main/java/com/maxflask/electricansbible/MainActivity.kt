@@ -4,15 +4,21 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -37,7 +43,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import com.maxflask.electricansbible.ui.theme.ElectricansBibleTheme
 import kotlinx.coroutines.CoroutineScope
@@ -54,12 +63,13 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                   BookReaderApp()
+                    BookReaderApp()
                 }
             }
         }
     }
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BookReaderApp() {
@@ -69,22 +79,27 @@ fun BookReaderApp() {
     var books = remember { mutableStateOf(listOf<String>()) }
     val selectedBook = remember { mutableStateOf("") }
     val chapters = remember { mutableStateOf(listOf<String>()) }
-    books.value = listOf("titles")
+    books.value = listOf("ПОТЭЭ", "Охрана труда")
     LaunchedEffect(selectedBook.value) {
         chapters.value = loadChapters(context, selectedBook.value)
     }
 
     ModalNavigationDrawer(
+
         drawerState = drawerState,
         drawerContent = {
-            DrawerContent(books.value, selectedBook, drawerState, scope)
+
+                DrawerContent(books.value, selectedBook, drawerState, scope)
+
         },
         scrimColor = Color(0xFF7B1FA2).copy(alpha = 0.9f) // Фиолетовый с прозрачностью
     ) {
+
+
         Scaffold(
             topBar = {
                 CenterAlignedTopAppBar(
-                    title = { Text("Book Titles") },
+                    title = { Text("Библия электриков") },
                     navigationIcon = {
                         IconButton(onClick = {
                             scope.launch { drawerState.open() }
@@ -93,36 +108,59 @@ fun BookReaderApp() {
                         }
                     }
                 )
-            }
+            },
+            containerColor = colorResource(id = R.color.fiolet)
         ) { paddingValues ->
             ChapterList(chapters.value, paddingValues)
+
         }
     }
 }
 
 @Composable
-fun DrawerContent(books: List<String>, selectedBook: MutableState<String>, drawerState: DrawerState, scope: CoroutineScope) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+fun DrawerContent(
+    books: List<String>,
+    selectedBook: MutableState<String>,
+    drawerState: DrawerState,
+    scope: CoroutineScope
+) {
+    Column() {
         Image(
-            painter = painterResource(id = R.drawable.iconbook), // Замените placeholder на реальный resource id
+            painter = painterResource(id = R.drawable.logo),
             contentDescription = "Book Cover",
             modifier = Modifier
-                .height(200.dp)
-                .fillMaxWidth()
-                .padding(16.dp),
-            colorFilter = ColorFilter.tint(Color.Gray)
+                .height(128.dp)
+                .width(128.dp)
+                .padding(5.dp),
+            alpha = 1f
         )
-        books.forEach { book ->
-            Text(
-                text = book,
-                modifier = Modifier
-                    .padding(16.dp)
-                    .clickable {
-                        selectedBook.value = book
-                        scope.launch { drawerState.close() }
-                    }
-            )
+
+        LazyColumn {
+            items(books) { item ->
+                Column(
+                    modifier = Modifier
+                        .padding(5.dp)
+                        .clip(RoundedCornerShape(1.dp))
+                        .border(1.dp, Color.Gray)
+                        .fillMaxWidth()
+
+                ) {
+                    Text(
+                        text = item,
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth()
+                            .clickable {
+                                selectedBook.value = item
+                                scope.launch { drawerState.close() }
+                            }
+                    )
+                }
+
+            }
         }
+
+
     }
 }
 
@@ -130,7 +168,12 @@ fun DrawerContent(books: List<String>, selectedBook: MutableState<String>, drawe
 fun ChapterList(chapters: List<String>, paddingValues: PaddingValues) {
     LazyColumn(modifier = Modifier.padding(paddingValues)) {
         items(chapters.size) { index ->
-            Text(text = chapters[index], modifier = Modifier.padding(8.dp))
+            Column(modifier = Modifier.fillMaxWidth().padding(5.dp).border(1.dp, Color.Gray,
+                RoundedCornerShape(5.dp)
+            )) {
+                Text(text = chapters[index], modifier = Modifier.padding(8.dp))
+            }
+
         }
     }
 }
